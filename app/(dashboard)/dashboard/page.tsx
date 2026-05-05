@@ -1,35 +1,49 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { and, asc, eq, gte, lte } from "drizzle-orm";
 import { CashflowChart } from "@/components/charts/cashflow-chart";
 import { CategoryPieChart } from "@/components/charts/category-pie-chart";
 import { DailyCashflowChart } from "@/components/charts/daily-expense-chart";
 import { MonthFilter } from "@/components/month-filter";
 import { SummaryCard } from "@/components/summary-card";
 import { TransactionTable } from "@/components/transactions/transaction-table";
-import { cashflowByDay, dailyCashflow, expensesByCategory, monthRange, summarize, Transaction } from "@/lib/finance";
-import { createClient } from "@/lib/supabase/server";
-import { currentMonth } from "@/lib/utils";
+import { cashflowByDay, dailyCashflow, expensesByCategory, monthRange, summarize } from "@/lib/finance";
+import { auth } from "@/lib/auth";
+import { db, transactions } from "@/lib/db";
+import { currentMonth, normalizeDate } from "@/lib/utils";
 import { CircleDollarSign, Plus } from "lucide-react";
+import type { Transaction } from "@/lib/finance";
 
 export default async function DashboardPage({ searchParams }: { searchParams: { month?: string } }) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
   const month = searchParams.month ?? currentMonth();
   const { from, to } = monthRange(month);
-  const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const rows = await db
+    .select()
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.userId, session.user.id),
+        gte(transactions.date, from),
+        lte(transactions.date, to)
+      )
+    )
+    .orderBy(asc(transactions.date));
 
-  const [{ data: transactions = [] }] = await Promise.all([
-    supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", user!.id)
-      .gte("date", from)
-      .lte("date", to)
-      .order("date", { ascending: true }),
-  ]);
+  const typedTransactions: Transaction[] = rows.map((r) => ({
+    id: r.id,
+    user_id: r.userId,
+    date: normalizeDate(r.date),
+    description: r.description,
+    category: r.category,
+    type: r.type as "income" | "expense",
+    amount: Number(r.amount),
+    created_at: r.createdAt.toISOString(),
+  }));
 
-  const typedTransactions = transactions as Transaction[];
   const summary = summarize(typedTransactions);
   const recent = [...typedTransactions].reverse().slice(0, 5);
 
@@ -37,19 +51,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const hour = now.getHours();
   const greeting =
     hour < 12 ? "Selamat pagi" : hour < 15 ? "Selamat siang" : hour < 18 ? "Selamat sore" : "Selamat malam";
-  const displayName = (user?.user_metadata?.username as string) || (() => {
-    const rawName = user?.email?.split("@")[0] ?? "Teman";
+
+  const displayName = session.user.name ?? (() => {
+    const rawName = session.user.email?.split("@")[0] ?? "Teman";
     return rawName
       .replace(/[._\-]/g, " ")
       .split(" ")
       .filter(Boolean)
-      .map((word) => word[0]?.toUpperCase() + word.slice(1))
+      .map((word: string) => word[0]?.toUpperCase() + word.slice(1))
       .join(" ");
   })();
 
   const isCurrentMonth = month === currentMonth();
-
-  // Format month label for display
   const [y, m] = month.split("-");
   const monthLabel = new Date(Number(y), Number(m) - 1).toLocaleDateString("id-ID", {
     month: "long",
@@ -58,13 +71,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
   return (
     <div className="space-y-6">
-      {/* Hero / Greeting Card */}
       <div className="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-white to-blue-50/50 p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
-              Dashboard
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">Dashboard</p>
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               {greeting}, {displayName}
             </h1>
@@ -76,14 +86,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
         <MonthFilter month={month} />
       </div>
 
-      {/* Summary Cards — always show, even if Rp0 */}
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <SummaryCard label="Total Pemasukan" value={summary.income} tone="income" />
         <SummaryCard label="Total Pengeluaran" value={summary.expense} tone="expense" />
         <SummaryCard label="Saldo" value={summary.balance} tone="balance" />
       </div>
 
-      {/* Charts & Recent Transactions */}
       {typedTransactions.length ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

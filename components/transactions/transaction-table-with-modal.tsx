@@ -71,14 +71,15 @@ export function TransactionTableWithModal({
     showForm && mounted
       ? createPortal(
           <div
-            style={{ position: "fixed", inset: 0, zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", padding: "1rem" }}
+            style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", padding: "1rem" }}
             onClick={() => setShowForm(false)}
           >
             <div
-              style={{ maxWidth: "560px", width: "100%", maxHeight: "90vh", overflowY: "auto", borderRadius: "1.5rem", backgroundColor: "#fff", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}
+              style={{ maxWidth: "560px", width: "100%", borderRadius: "1.5rem", backgroundColor: "#fff", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", display: "flex", flexDirection: "column", maxHeight: "90vh" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              {/* Header — fixed */}
+              <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
                 <h2 className="text-base font-semibold text-slate-900">
                   {editTransaction ? "Edit Transaksi" : "Tambah Transaksi"}
                 </h2>
@@ -86,7 +87,8 @@ export function TransactionTableWithModal({
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="p-5">
+              {/* Body — scrollable */}
+              <div className="overflow-y-auto p-5">
                 <TransactionForm transaction={editTransaction} hideCard />
               </div>
             </div>

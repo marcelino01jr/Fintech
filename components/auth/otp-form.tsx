@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { verifyOtpAction } from "@/app/actions";
 import { Loader2 } from "lucide-react";
 
 export function OtpForm({ email, message }: { email: string; message?: string }) {
@@ -14,19 +14,16 @@ export function OtpForm({ email, message }: { email: string; message?: string })
 
   const handleChange = useCallback(
     (index: number, value: string) => {
-      // Only allow digits
       const digit = value.replace(/\D/g, "").slice(-1);
       const newOtp = [...otp];
       newOtp[index] = digit;
       setOtp(newOtp);
       setError("");
 
-      // Auto-focus next input
       if (digit && index < 5) {
         inputsRef.current[index + 1]?.focus();
       }
 
-      // Auto-submit when all 6 digits filled
       if (digit && index === 5 && newOtp.every((d) => d !== "")) {
         verifyOtp(newOtp.join(""));
       }
@@ -55,11 +52,9 @@ export function OtpForm({ email, message }: { email: string; message?: string })
     setOtp(newOtp);
     setError("");
 
-    // Focus last filled or next empty
     const focusIndex = Math.min(pasted.length, 5);
     inputsRef.current[focusIndex]?.focus();
 
-    // Auto-submit if all 6 digits pasted
     if (pasted.length === 6) {
       verifyOtp(pasted);
     }
@@ -70,23 +65,15 @@ export function OtpForm({ email, message }: { email: string; message?: string })
     setError("");
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: "email",
-      });
+      const result = await verifyOtpAction(email, token);
 
-      if (error) {
-        setError(error.message === "Token has expired or is invalid"
-          ? "Kode OTP tidak valid atau sudah kedaluwarsa."
-          : error.message);
+      if (!result.success) {
+        setError(result.message);
         setLoading(false);
         return;
       }
 
-      // OTP valid — user is now authenticated, redirect to reset password
-      router.push("/reset-password");
+      router.push("/reset-password?email=" + encodeURIComponent(email));
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.");
       setLoading(false);
@@ -97,7 +84,6 @@ export function OtpForm({ email, message }: { email: string; message?: string })
 
   return (
     <div className="space-y-5">
-      {/* OTP Input Boxes */}
       <div className="flex justify-center gap-2 sm:gap-3" onPaste={handlePaste}>
         {otp.map((digit, i) => (
           <input
@@ -120,14 +106,12 @@ export function OtpForm({ email, message }: { email: string; message?: string })
         ))}
       </div>
 
-      {/* Error */}
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
           {error}
         </div>
       )}
 
-      {/* Submit button */}
       <button
         onClick={() => verifyOtp(otp.join(""))}
         disabled={!allFilled || loading}

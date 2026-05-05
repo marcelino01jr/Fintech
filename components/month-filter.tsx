@@ -16,8 +16,10 @@ function formatMonthLabel(month: string) {
 
 function shiftMonth(month: string, delta: number) {
   const [y, m] = month.split("-").map(Number);
-  const d = new Date(y, m - 1 + delta);
-  return d.toISOString().slice(0, 7);
+  const d = new Date(y, m - 1 + delta, 1);
+  const newYear = d.getFullYear();
+  const newMonth = String(d.getMonth() + 1).padStart(2, "0");
+  return `${newYear}-${newMonth}`;
 }
 
 export function MonthFilter({ month }: MonthFilterProps) {

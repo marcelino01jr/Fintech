@@ -2,24 +2,26 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { NavigationProgress } from "@/components/ui/navigation-progress";
-import { createClient } from "@/lib/supabase/server";
+import { ActivityTracker } from "@/components/session/activity-tracker";
+import { auth } from "@/lib/auth";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
-  if (!user) redirect("/login");
-
-  const username = (user.user_metadata?.username as string) || undefined;
+  // loginAt dari JWT — fallback ke now jika tidak ada
+  const loginAt = (session as any).loginAt ?? Date.now();
 
   return (
     <>
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
-      <AppShell email={user.email} username={username}>{children}</AppShell>
+      {/* Track user activity untuk idle timeout & max session */}
+      <ActivityTracker loginAt={loginAt} />
+      <AppShell email={session.user.email ?? undefined} username={session.user.name ?? undefined}>
+        {children}
+      </AppShell>
     </>
   );
 }

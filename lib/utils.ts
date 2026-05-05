@@ -14,5 +14,15 @@ export function formatCurrency(value: number) {
 }
 
 export function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+/** Normalize date from CockroachDB — may return Date object or string */
+export function normalizeDate(d: string | Date | unknown): string {
+  if (typeof d === "string") return d.slice(0, 10);
+  if (d instanceof Date) return d.toISOString().slice(0, 10);
+  return String(d).slice(0, 10);
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Lock, ArrowLeft } from "lucide-react";
+import { ShieldCheck, ArrowLeft, AlertTriangle } from "lucide-react";
 import { resetPassword } from "@/app/actions";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { PasswordInput } from "@/components/forms/password-input";
@@ -7,11 +7,33 @@ import { PasswordInput } from "@/components/forms/password-input";
 export default function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: { message?: string };
+  searchParams: { token?: string; message?: string };
 }) {
+  // No token — invalid link
+  if (!searchParams.token) {
+    return (
+      <div className="rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl shadow-slate-200/50 backdrop-blur-xl sm:p-10">
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-400 to-red-500 shadow-lg shadow-red-500/25">
+            <AlertTriangle className="h-7 w-7 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">Link tidak valid</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Link reset kata sandi tidak valid atau sudah kedaluwarsa.
+          </p>
+          <Link
+            href="/forgot-password"
+            className="mt-6 flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg"
+          >
+            Minta link baru
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl shadow-slate-200/50 backdrop-blur-xl sm:p-10">
-      {/* Header */}
       <div className="mb-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 shadow-lg shadow-green-500/25">
           <ShieldCheck className="h-7 w-7 text-white" />
@@ -22,8 +44,10 @@ export default function ResetPasswordPage({
         </p>
       </div>
 
-      {/* Form */}
       <form action={resetPassword} className="space-y-5">
+        {/* Pass token to server action */}
+        <input type="hidden" name="token" value={searchParams.token} />
+
         <div className="space-y-1.5">
           <label htmlFor="new_password" className="text-sm font-medium text-slate-700">
             Kata sandi baru
@@ -62,7 +86,6 @@ export default function ResetPasswordPage({
         </SubmitButton>
       </form>
 
-      {/* Back to login */}
       <div className="mt-6 text-center">
         <Link
           href="/login"
