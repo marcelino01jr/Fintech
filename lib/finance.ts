@@ -1,8 +1,18 @@
 import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 
-export const categories = [
+export type CategoryType = "income" | "expense";
+
+export const incomeCategories = [
   "Gaji",
   "Freelance",
+  "Investasi",
+  "Bonus",
+  "Hadiah",
+  "Penjualan",
+  "Lainnya",
+] as const;
+
+export const expenseCategories = [
   "Makanan & Minuman",
   "Transportasi",
   "Tagihan",
@@ -10,8 +20,16 @@ export const categories = [
   "Kesehatan",
   "Hiburan",
   "Pendidikan",
-  "Lainnya"
-];
+  "Perawatan Pribadi",
+  "Rumah Tangga",
+  "Lainnya",
+] as const;
+
+/** Gabungan semua kategori — dipakai untuk filter & backward-compat */
+export const allCategories = [...incomeCategories, ...expenseCategories];
+
+/** @deprecated gunakan incomeCategories / expenseCategories */
+export const categories = allCategories;
 
 export type Transaction = {
   id: string;
@@ -20,15 +38,15 @@ export type Transaction = {
   description: string;
   category: string;
   type: "income" | "expense";
-  amount: number;
-  created_at: string;
+  amount: number | string;
+  created_at: string | Date;
 };
 
 export type Budget = {
   id: string;
   user_id: string;
   category: string;
-  monthly_limit: number;
+  monthly_limit: number | string;
 };
 
 export type Account = {

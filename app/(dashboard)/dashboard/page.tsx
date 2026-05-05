@@ -6,6 +6,9 @@ import { MonthFilter } from "@/components/month-filter";
 import { SummaryCard } from "@/components/summary-card";
 import { TransactionTable } from "@/components/transactions/transaction-table";
 import { cashflowByDay, dailyCashflow, expensesByCategory, monthRange, summarize, Transaction } from "@/lib/finance";
+import { db } from "@/lib/db";
+import { transactions as transactionsTable } from "@/lib/schema";
+import { eq, and, gte, lte, asc } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { currentMonth } from "@/lib/utils";
 import { CircleDollarSign, Plus } from "lucide-react";
@@ -19,15 +22,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: transactions = [] }] = await Promise.all([
-    supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", user!.id)
-      .gte("date", from)
-      .lte("date", to)
-      .order("date", { ascending: true }),
-  ]);
+  const transactions = await db
+    .select()
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.user_id, user!.id),
+        gte(transactionsTable.date, from),
+        lte(transactionsTable.date, to)
+      )
+    )
+    .orderBy(asc(transactionsTable.date));
 
   const typedTransactions = transactions as Transaction[];
   const summary = summarize(typedTransactions);

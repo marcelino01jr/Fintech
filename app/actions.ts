@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { eq, and } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { transactions, budgets } from "@/lib/schema";
 
 function value(formData: FormData, key: string) {
   const entry = formData.get(key);
@@ -186,13 +189,18 @@ export async function saveTransaction(formData: FormData) {
     description: value(formData, "description"),
     category,
     type: value(formData, "type"),
-    amount: Number(value(formData, "amount")),
+    amount: value(formData, "amount"),
   };
 
   if (id) {
-    await supabase.from("transactions").update(payload).eq("id", id).eq("user_id", user.id);
+    await db.update(transactions).set(payload).where(and(eq(transactions.id, id), eq(transactions.user_id, user.id)));
   } else {
-    await supabase.from("transactions").insert(payload);
+    // We generate the UUID by letting the database do it (or we could use crypto.randomUUID).
+    // Our schema has defaultNow() for created_at and generated UUID. So we only need to provide the fields we want.
+    // However, drizzle `uuid` needs to be defined as gen_random_uuid() or we use `crypto.randomUUID()`.
+    // Wait, Drizzle doesn't auto-generate text primary keys by default unless instructed. Let's use crypto.randomUUID().
+    const newId = crypto.randomUUID();
+    await db.insert(transactions).values({ id: newId, ...payload });
   }
 
   revalidatePath("/dashboard");
@@ -209,7 +217,7 @@ export async function deleteTransaction(formData: FormData) {
   if (!user) redirect("/login");
 
   const id = value(formData, "id");
-  await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id);
+  await db.delete(transactions).where(and(eq(transactions.id, id), eq(transactions.user_id, user.id)));
   revalidatePath("/dashboard");
   revalidatePath("/transactions");
   revalidatePath("/budgets");
@@ -224,7 +232,7 @@ export async function deleteTransactionById(id: string) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id);
+  await db.delete(transactions).where(and(eq(transactions.id, id), eq(transactions.user_id, user.id)));
   revalidatePath("/dashboard");
   revalidatePath("/transactions");
   revalidatePath("/budgets");
@@ -246,13 +254,18 @@ export async function saveBudget(formData: FormData) {
   const payload = {
     user_id: user.id,
     category,
-    monthly_limit: Number(value(formData, "monthly_limit")),
+    monthly_limit: value(formData, "monthly_limit"),
   };
 
   if (id) {
-    await supabase.from("budgets").update(payload).eq("id", id).eq("user_id", user.id);
+    await db.update(budgets).set(payload).where(and(eq(budgets.id, id), eq(budgets.user_id, user.id)));
   } else {
-    await supabase.from("budgets").upsert(payload, { onConflict: "user_id,category" });
+    const newId = crypto.randomUUID();
+    // For upsert, Drizzle has ON CONFLICT DO UPDATE
+    await db.insert(budgets).values({ id: newId, ...payload }).onConflictDoUpdate({
+      target: [budgets.user_id, budgets.category],
+      set: { monthly_limit: payload.monthly_limit },
+    });
   }
 
   revalidatePath("/budgets");
@@ -266,7 +279,7 @@ export async function deleteBudget(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  await supabase.from("budgets").delete().eq("id", value(formData, "id")).eq("user_id", user.id);
+  await db.delete(budgets).where(and(eq(budgets.id, value(formData, "id")), eq(budgets.user_id, user.id)));
   revalidatePath("/budgets");
   redirect("/budgets");
 }
@@ -279,6 +292,6 @@ export async function deleteBudgetById(id: string) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  await supabase.from("budgets").delete().eq("id", id).eq("user_id", user.id);
+  await db.delete(budgets).where(and(eq(budgets.id, id), eq(budgets.user_id, user.id)));
   revalidatePath("/budgets");
 }

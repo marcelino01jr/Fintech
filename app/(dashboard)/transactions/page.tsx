@@ -1,7 +1,10 @@
 import { ToastOnLoad } from "@/components/toast-on-load";
 import { TransactionTableWithModal } from "@/components/transactions/transaction-table-with-modal";
 import { Select } from "@/components/ui/select";
-import { categories, monthRange, Transaction } from "@/lib/finance";
+import { incomeCategories, expenseCategories, monthRange, Transaction } from "@/lib/finance";
+import { db } from "@/lib/db";
+import { transactions as transactionsTable } from "@/lib/schema";
+import { eq, and, gte, lte, desc, count } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { currentMonth } from "@/lib/utils";
 
@@ -22,39 +25,43 @@ export default async function TransactionsPage({
   } = await supabase.auth.getUser();
 
   // Count total for pagination
-  let countQuery = supabase
-    .from("transactions")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user!.id)
-    .gte("date", from)
-    .lte("date", to);
+  const countFilters = [
+    eq(transactionsTable.user_id, user!.id),
+    gte(transactionsTable.date, from),
+    lte(transactionsTable.date, to),
+  ];
+  if (category !== "all") countFilters.push(eq(transactionsTable.category, category));
 
-  if (category !== "all") countQuery = countQuery.eq("category", category);
+  const [countResult] = await db
+    .select({ value: count() })
+    .from(transactionsTable)
+    .where(and(...countFilters));
 
-  const { count: totalCount } = await countQuery;
-  const total = totalCount ?? 0;
+  const total = countResult?.value ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   // Fetch paginated data
-  let query = supabase
-    .from("transactions")
-    .select("*")
-    .eq("user_id", user!.id)
-    .gte("date", from)
-    .lte("date", to)
-    .order("created_at", { ascending: false })
-    .range(offset, offset + PAGE_SIZE - 1);
-
-  if (category !== "all") query = query.eq("category", category);
-
-  const [{ data: transactions = [] }, { data: editTransaction }] = await Promise.all([
-    query,
+  let editTransaction = null;
+  const [transactions, editResult] = await Promise.all([
+    db
+      .select()
+      .from(transactionsTable)
+      .where(and(...countFilters))
+      .orderBy(desc(transactionsTable.created_at))
+      .limit(PAGE_SIZE)
+      .offset(offset),
     searchParams.edit
-      ? supabase.from("transactions").select("*").eq("user_id", user!.id).eq("id", searchParams.edit).single()
-      : Promise.resolve({ data: null }),
+      ? db
+          .select()
+          .from(transactionsTable)
+          .where(and(eq(transactionsTable.id, searchParams.edit), eq(transactionsTable.user_id, user!.id)))
+          .limit(1)
+      : Promise.resolve([]),
   ]);
+
+  if (editResult.length > 0) editTransaction = editResult[0];
 
   const typedTransactions = transactions as Transaction[];
 
@@ -94,9 +101,16 @@ export default async function TransactionsPage({
             <label className="text-xs font-medium text-slate-500">Kategori</label>
             <Select name="category" defaultValue={category}>
               <option value="all">Semua kategori</option>
-              {categories.map((item) => (
-                <option key={item} value={item}>{item}</option>
-              ))}
+              <optgroup label="── Pemasukan">
+                {incomeCategories.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </optgroup>
+              <optgroup label="── Pengeluaran">
+                {expenseCategories.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </optgroup>
             </Select>
           </div>
           <button

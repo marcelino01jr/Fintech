@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { Budget, categories } from "@/lib/finance";
+import { Budget, expenseCategories } from "@/lib/finance";
 
 interface BudgetFormProps {
   editBudget?: Budget;
@@ -18,13 +18,17 @@ interface BudgetFormProps {
 
 export function BudgetForm({ editBudget, onCancel }: BudgetFormProps) {
   const initialCategory = useMemo(() => {
-    if (!editBudget) return "Makanan";
-    return categories.includes(editBudget.category) ? editBudget.category : "Lainnya";
+    if (!editBudget) return expenseCategories[0];
+    return expenseCategories.includes(editBudget.category as never)
+      ? editBudget.category
+      : "Lainnya";
   }, [editBudget]);
 
   const [category, setCategory] = useState(initialCategory);
   const [customCategory, setCustomCategory] = useState(
-    editBudget && !categories.includes(editBudget.category) ? editBudget.category : ""
+    editBudget && !expenseCategories.includes(editBudget.category as never)
+      ? editBudget.category
+      : ""
   );
 
   // When used inside modal (onCancel provided), render without Card wrapper
@@ -36,11 +40,9 @@ export function BudgetForm({ editBudget, onCancel }: BudgetFormProps) {
         <div className="space-y-1.5">
           <Label htmlFor="budget-category">Kategori</Label>
           <Select id="budget-category" name="category" value={category} onChange={(e) => setCategory(e.target.value)} required>
-            {categories
-              .filter((c) => !["Gaji", "Freelance"].includes(c))
-              .map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+            {expenseCategories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </Select>
           {category === "Lainnya" && (
             <Input

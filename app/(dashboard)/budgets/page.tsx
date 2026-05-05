@@ -2,6 +2,9 @@ import { ToastOnLoad } from "@/components/toast-on-load";
 import { BudgetSection } from "@/components/budgets/budget-section";
 import { SummaryCard } from "@/components/summary-card";
 import { Budget, monthRange, Transaction } from "@/lib/finance";
+import { db } from "@/lib/db";
+import { transactions as transactionsTable, budgets as budgetsTable } from "@/lib/schema";
+import { eq, and, gte, lte, asc } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { currentMonth } from "@/lib/utils";
 
@@ -17,15 +20,23 @@ export default async function BudgetsPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: budgets = [] }, { data: transactions = [] }] = await Promise.all([
-    supabase.from("budgets").select("*").eq("user_id", user!.id).order("category"),
-    supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", user!.id)
-      .eq("type", "expense")
-      .gte("date", from)
-      .lte("date", to),
+  const [budgets, transactions] = await Promise.all([
+    db
+      .select()
+      .from(budgetsTable)
+      .where(eq(budgetsTable.user_id, user!.id))
+      .orderBy(asc(budgetsTable.category)),
+    db
+      .select()
+      .from(transactionsTable)
+      .where(
+        and(
+          eq(transactionsTable.user_id, user!.id),
+          eq(transactionsTable.type, "expense"),
+          gte(transactionsTable.date, from),
+          lte(transactionsTable.date, to)
+        )
+      ),
   ]);
 
   // Build spending map — case-insensitive matching
