@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { AppShell } from "@/components/layout/app-shell";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -12,5 +14,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const username = (user.user_metadata?.username as string) || undefined;
 
-  return <AppShell email={user.email} username={username}>{children}</AppShell>;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <NavigationProgress />
+      </Suspense>
+      <AppShell email={user.email} username={username}>{children}</AppShell>
+    </>
+  );
 }

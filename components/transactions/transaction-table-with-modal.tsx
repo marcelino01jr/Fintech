@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+
 import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { deleteTransaction } from "@/app/actions";
+import { deleteTransactionById } from "@/app/actions";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
+
 import { Transaction } from "@/lib/finance";
 import { cn, formatCurrency } from "@/lib/utils";
 
@@ -36,6 +39,8 @@ export function TransactionTableWithModal({
 }) {
   const [showForm, setShowForm] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -52,6 +57,13 @@ export function TransactionTableWithModal({
     document.body.style.overflow = showForm ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [showForm]);
+
+  function handleDelete(id: string) {
+    setDeletingIds((prev) => new Set(prev).add(id));
+    startTransition(async () => {
+      await deleteTransactionById(id);
+    });
+  }
 
   const { currentPage, totalPages, total, urls } = pagination;
 
@@ -106,10 +118,10 @@ export function TransactionTableWithModal({
             <>
               {/* Mobile cards */}
               <div className="space-y-2.5 sm:hidden">
-                {transactions.map((t) => {
+                {transactions.filter((t) => !deletingIds.has(t.id)).map((t) => {
                   const dt = formatDateTime(t.date, t.created_at);
                   return (
-                    <div key={t.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5">
+                    <div key={t.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5 transition-all duration-300 animate-in fade-in slide-in-from-top-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold text-slate-900">{t.description}</p>
@@ -126,12 +138,15 @@ export function TransactionTableWithModal({
                         <Link href={`/transactions?edit=${t.id}`} className="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-600" aria-label="Edit">
                           <Pencil className="h-3.5 w-3.5" />
                         </Link>
-                        <form action={deleteTransaction}>
-                          <input type="hidden" name="id" value={t.id} />
-                          <button type="submit" className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
+                        <ConfirmDelete 
+                          title={`transaksi "${t.description?.substring(0,30)}${t.description?.length > 30 ? '...' : ''}"`}
+                          message="Data transaksi ini akan dihapus permanen dan tidak dapat dikembalikan."
+                          onConfirm={() => handleDelete(t.id)}
+                        >
+                          <button className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
-                        </form>
+                        </ConfirmDelete>
                       </div>
                     </div>
                   );
@@ -151,10 +166,10 @@ export function TransactionTableWithModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map((t) => {
+                    {transactions.filter((t) => !deletingIds.has(t.id)).map((t) => {
                       const dt = formatDateTime(t.date, t.created_at);
                       return (
-                        <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                        <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-all duration-200 animate-in fade-in">
                           <td className="py-3">
                             <span className="text-slate-700">{dt.date}</span>
                             <span className="ml-1.5 text-xs text-slate-400">{dt.time}</span>
@@ -171,12 +186,15 @@ export function TransactionTableWithModal({
                               <Link href={`/transactions?edit=${t.id}`} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Edit">
                                 <Pencil className="h-4 w-4" />
                               </Link>
-                              <form action={deleteTransaction}>
-                                <input type="hidden" name="id" value={t.id} />
-                                <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
+                              <ConfirmDelete 
+                                title={`transaksi "${t.description?.substring(0,30)}${t.description?.length > 30 ? '...' : ''}"`}
+                                message="Data transaksi ini akan dihapus permanen dan tidak dapat dikembalikan."
+                                onConfirm={() => handleDelete(t.id)}
+                              >
+                                <button className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
                                   <Trash2 className="h-4 w-4" />
                                 </button>
-                              </form>
+                              </ConfirmDelete>
                             </div>
                           </td>
                         </tr>

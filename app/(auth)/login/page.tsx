@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Wallet, Mail, Lock, Check } from "lucide-react";
 import { signIn } from "@/app/actions";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { PasswordInput } from "@/components/forms/password-input";
 
 export default function LoginPage({ searchParams }: { searchParams: { message?: string; success?: string } }) {
   return (
@@ -38,17 +39,12 @@ export default function LoginPage({ searchParams }: { searchParams: { message?: 
           <label htmlFor="password" className="text-sm font-medium text-slate-700">
             Kata sandi
           </label>
-          <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              placeholder="••••••••"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            name="password"
+            required
+            placeholder="••••••••"
+          />
         </div>
 
         <div className="flex justify-end">

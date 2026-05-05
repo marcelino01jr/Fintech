@@ -39,4 +39,37 @@
   .shadow-soft {
     box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
   }
+
+  /* Page transition */
+  .page-enter {
+    animation: pageEnter 0.25s ease both;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(210 20% 93%) 25%,
+      hsl(210 20% 97%) 50%,
+      hsl(210 20% 93%) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite;
+  }
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

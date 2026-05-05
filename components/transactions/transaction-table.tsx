@@ -1,7 +1,11 @@
+"use client";
+
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
-import { deleteTransaction } from "@/app/actions";
+import { deleteTransactionById } from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Transaction } from "@/lib/finance";
 import { cn, formatCurrency } from "@/lib/utils";
 
@@ -12,6 +16,18 @@ export function TransactionTable({
   transactions: Transaction[];
   showTitle?: boolean;
 }) {
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [, startTransition] = useTransition();
+
+  function handleDelete(id: string) {
+    setDeletingIds((prev) => new Set(prev).add(id));
+    startTransition(async () => {
+      await deleteTransactionById(id);
+    });
+  }
+
+  const visible = transactions.filter((t) => !deletingIds.has(t.id));
+
   return (
     <Card>
       {showTitle && (
@@ -20,12 +36,12 @@ export function TransactionTable({
         </CardHeader>
       )}
       <CardContent>
-        {transactions.length ? (
+        {visible.length ? (
           <>
             {/* Mobile cards */}
             <div className="space-y-2.5 sm:hidden">
-              {transactions.map((t) => (
-                <div key={t.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5">
+              {visible.map((t) => (
+                <div key={t.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5 transition-all duration-300 animate-in fade-in slide-in-from-top-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-slate-900">{t.description}</p>
@@ -46,12 +62,15 @@ export function TransactionTable({
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </Link>
-                    <form action={deleteTransaction}>
-                      <input type="hidden" name="id" value={t.id} />
-                      <button type="submit" className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
+                    <ConfirmDelete
+                      title={`transaksi "${t.description?.substring(0,30)}${t.description?.length > 30 ? '...' : ''}"`}
+                      message="Data transaksi ini akan dihapus permanen dan tidak dapat dikembalikan."
+                      onConfirm={() => handleDelete(t.id)}
+                    >
+                      <button className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
-                    </form>
+                    </ConfirmDelete>
                   </div>
                 </div>
               ))}
@@ -70,8 +89,8 @@ export function TransactionTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((t) => (
-                    <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                  {visible.map((t) => (
+                    <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-all duration-200 animate-in fade-in">
                       <td className="py-3 text-slate-500">{t.date}</td>
                       <td className="py-3 font-medium text-slate-900">{t.description}</td>
                       <td className="py-3">
@@ -89,12 +108,15 @@ export function TransactionTable({
                           >
                             <Pencil className="h-4 w-4" />
                           </Link>
-                          <form action={deleteTransaction}>
-                            <input type="hidden" name="id" value={t.id} />
-                            <button type="submit" className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
+                          <ConfirmDelete
+                            title={`transaksi "${t.description?.substring(0,30)}${t.description?.length > 30 ? '...' : ''}"`}
+                            message="Data transaksi ini akan dihapus permanen dan tidak dapat dikembalikan."
+                            onConfirm={() => handleDelete(t.id)}
+                          >
+                            <button className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
                               <Trash2 className="h-4 w-4" />
                             </button>
-                          </form>
+                          </ConfirmDelete>
                         </div>
                       </td>
                     </tr>

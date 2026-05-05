@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { BudgetForm } from "@/components/budgets/budget-form";
-import { deleteBudget } from "@/app/actions";
+import { deleteBudgetById } from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Budget } from "@/lib/finance";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 
 const PAGE_SIZE = 5;
 
@@ -27,6 +28,8 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
   const [showModal, setShowModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(1);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -63,6 +66,13 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
   function closeModal() {
     setEditBudget(undefined);
     setShowModal(false);
+  }
+
+  function handleDelete(id: string) {
+    setDeletingIds((prev) => new Set(prev).add(id));
+    startTransition(async () => {
+      await deleteBudgetById(id);
+    });
   }
 
   const modal =
@@ -116,12 +126,12 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
             <>
               {/* Mobile cards */}
               <div className="space-y-2.5 sm:hidden">
-                {paged.map((b) => {
+                {paged.filter((b) => !deletingIds.has(b.id)).map((b) => {
                   const used = spending[b.category] ?? 0;
                   const pct = b.monthly_limit > 0 ? Math.round((used / Number(b.monthly_limit)) * 100) : 0;
                   const s = budgetStatus(pct);
                   return (
-                    <div key={b.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5">
+                    <div key={b.id} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5 transition-all duration-300 animate-in fade-in slide-in-from-top-1">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold text-slate-900">{b.category}</span>
                         <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold", s.badge)}>{s.label}</span>
@@ -139,12 +149,15 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
                         <button onClick={() => openEdit(b)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-600" aria-label="Edit">
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
-                        <form action={deleteBudget}>
-                          <input type="hidden" name="id" value={b.id} />
-                          <button type="submit" className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
+                        <ConfirmDelete 
+                          title={`anggaran "${b.category}"`}
+                          message="Anggaran ini akan dihapus permanen dan tidak dapat dikembalikan."
+                          onConfirm={() => handleDelete(b.id)}
+                        >
+                          <button className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
-                        </form>
+                        </ConfirmDelete>
                       </div>
                     </div>
                   );
@@ -164,12 +177,12 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {paged.map((b) => {
+                    {paged.filter((b) => !deletingIds.has(b.id)).map((b) => {
                       const used = spending[b.category] ?? 0;
                       const pct = b.monthly_limit > 0 ? Math.round((used / Number(b.monthly_limit)) * 100) : 0;
                       const s = budgetStatus(pct);
                       return (
-                        <tr key={b.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                        <tr key={b.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-all duration-200 animate-in fade-in">
                           <td className="py-3 font-medium text-slate-900">{b.category}</td>
                           <td className="py-3 text-slate-600">{formatCurrency(Number(b.monthly_limit))}</td>
                           <td className="py-3 text-slate-600">{formatCurrency(used)}</td>
@@ -189,12 +202,15 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
                               <button onClick={() => openEdit(b)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Edit">
                                 <Pencil className="h-4 w-4" />
                               </button>
-                              <form action={deleteBudget}>
-                                <input type="hidden" name="id" value={b.id} />
-                                <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
+                              <ConfirmDelete 
+                                title={`anggaran "${b.category}"`}
+                                message="Anggaran ini akan dihapus permanen dan tidak dapat dikembalikan."
+                                onConfirm={() => handleDelete(b.id)}
+                              >
+                                <button className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label="Hapus">
                                   <Trash2 className="h-4 w-4" />
                                 </button>
-                              </form>
+                              </ConfirmDelete>
                             </div>
                           </td>
                         </tr>

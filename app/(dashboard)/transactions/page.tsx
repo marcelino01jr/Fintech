@@ -87,7 +87,7 @@ export default async function TransactionsPage({
               type="month"
               name="month"
               defaultValue={month}
-              className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 shadow-sm transition-colors focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 shadow-sm transition-colors focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
           <div className="flex-1 space-y-1.5">
@@ -101,7 +101,7 @@ export default async function TransactionsPage({
           </div>
           <button
             type="submit"
-            className="h-11 shrink-0 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 sm:w-auto"
+            className="h-11 w-full rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 sm:w-auto sm:shrink-0"
           >
             Terapkan
           </button>

@@ -35,21 +35,21 @@ export function MonthFilter({ month }: MonthFilterProps) {
         <Calendar className="h-4 w-4" />
         <span>Periode</span>
       </div>
-      <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+      <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm overflow-hidden max-w-full">
         <button
           onClick={() => go(shiftMonth(month, -1))}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          className="flex shrink-0 h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
           aria-label="Bulan sebelumnya"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="min-w-[140px] px-3 text-center text-sm font-semibold text-slate-800">
+        <span className="flex-1 px-2 sm:px-3 min-w-[100px] truncate text-center text-sm font-semibold text-slate-800">
           {formatMonthLabel(month)}
         </span>
         <button
           onClick={() => go(shiftMonth(month, 1))}
           disabled={isCurrentMonth}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex shrink-0 h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Bulan berikutnya"
         >
           <ChevronRight className="h-4 w-4" />

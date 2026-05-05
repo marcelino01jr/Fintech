@@ -3,7 +3,7 @@ import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 export const categories = [
   "Gaji",
   "Freelance",
-  "Makanan",
+  "Makanan & Minuman",
   "Transportasi",
   "Tagihan",
   "Belanja",

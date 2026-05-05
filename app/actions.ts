@@ -216,6 +216,20 @@ export async function deleteTransaction(formData: FormData) {
   redirect("/transactions");
 }
 
+/** Client-callable wrapper — accepts plain id string */
+export async function deleteTransactionById(id: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id);
+  revalidatePath("/dashboard");
+  revalidatePath("/transactions");
+  revalidatePath("/budgets");
+}
+
 // ─── Budgets ─────────────────────────────────────────────────────────
 
 export async function saveBudget(formData: FormData) {
@@ -255,4 +269,16 @@ export async function deleteBudget(formData: FormData) {
   await supabase.from("budgets").delete().eq("id", value(formData, "id")).eq("user_id", user.id);
   revalidatePath("/budgets");
   redirect("/budgets");
+}
+
+/** Client-callable wrapper — accepts plain id string */
+export async function deleteBudgetById(id: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase.from("budgets").delete().eq("id", id).eq("user_id", user.id);
+  revalidatePath("/budgets");
 }

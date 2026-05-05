@@ -86,7 +86,7 @@ export function AppShell({ children, email, username }: { children: React.ReactN
         </header>
 
         {/* Page content */}
-        <main className="mx-auto w-full max-w-7xl px-4 py-6 pb-28 lg:px-8 lg:pb-6">
+        <main className="mx-auto w-full max-w-7xl px-4 py-6 pb-28 lg:px-8 lg:pb-6 page-enter">
           {children}
         </main>
 
