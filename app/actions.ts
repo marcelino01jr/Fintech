@@ -8,6 +8,7 @@ import { randomUUID } from "crypto";
 import { signIn as nextAuthSignIn, signOut as nextAuthSignOut, auth } from "@/lib/auth";
 import { db, users, transactions, budgets, resetTokens } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { isValidCurrency } from "@/lib/currency";
 
 function value(formData: FormData, key: string) {
   const entry = formData.get(key);
@@ -169,6 +170,27 @@ export async function updatePassword(formData: FormData) {
   redirect("/profile?success=" + encodeURIComponent("Kata sandi berhasil diperbarui!"));
 }
 
+// ─── Currency ─────────────────────────────────────────────────────────────────
+
+export async function updateCurrency(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  const currency = value(formData, "currency");
+
+  if (!currency || !isValidCurrency(currency)) {
+    redirect("/profile?message=" + encodeURIComponent("Mata uang tidak valid."));
+  }
+
+  await db.update(users).set({ currency }).where(eq(users.id, session.user.id));
+
+  revalidatePath("/profile");
+  revalidatePath("/dashboard");
+  revalidatePath("/transactions");
+  revalidatePath("/budgets");
+  redirect("/profile?success=" + encodeURIComponent("Mata uang berhasil diperbarui!"));
+}
+
 // ─── OTP Verification (deprecated - now using magic link) ─────────────────────
 
 export async function verifyOtpAction(email: string, token: string) {
@@ -191,6 +213,13 @@ export async function saveTransaction(formData: FormData) {
   const customCategory = value(formData, "custom_category");
   const category = rawCategory === "Lainnya" && customCategory ? customCategory : rawCategory;
 
+  // Get currency from form, fallback to user's preferred currency
+  let currency = value(formData, "currency");
+  if (!currency || !isValidCurrency(currency)) {
+    const [user] = await db.select({ currency: users.currency }).from(users).where(eq(users.id, session.user.id)).limit(1);
+    currency = user?.currency ?? "IDR";
+  }
+
   const payload = {
     userId: session.user.id,
     date: value(formData, "date"),
@@ -198,6 +227,7 @@ export async function saveTransaction(formData: FormData) {
     category,
     type: value(formData, "type") as "income" | "expense",
     amount: value(formData, "amount"),
+    currency,
   };
 
   if (id) {

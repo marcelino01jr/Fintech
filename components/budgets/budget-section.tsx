@@ -9,6 +9,7 @@ import { Budget } from "@/lib/finance";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
+import type { CurrencyCode } from "@/lib/currency";
 
 const PAGE_SIZE = 5;
 
@@ -21,9 +22,10 @@ function budgetStatus(percent: number) {
 interface BudgetSectionProps {
   budgets: Budget[];
   spending: Record<string, number>;
+  currency?: CurrencyCode;
 }
 
-export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
+export function BudgetSection({ budgets, spending, currency = "IDR" }: BudgetSectionProps) {
   const [editBudget, setEditBudget] = useState<Budget | undefined>(undefined);
   const [showModal, setShowModal] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -95,7 +97,7 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
                 </button>
               </div>
               <div className="p-5">
-                <BudgetForm editBudget={editBudget} onCancel={closeModal} />
+                <BudgetForm editBudget={editBudget} onCancel={closeModal} currency={currency} />
               </div>
             </div>
           </div>,
@@ -141,7 +143,7 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
                           <div className={cn("h-full rounded-full transition-all", s.bar)} style={{ width: `${Math.min(pct, 100)}%` }} />
                         </div>
                         <div className="mt-1.5 flex justify-between text-xs text-slate-500">
-                          <span>{formatCurrency(used)} / {formatCurrency(Number(b.monthly_limit))}</span>
+                          <span>{formatCurrency(used, currency)} / {formatCurrency(Number(b.monthly_limit), currency)}</span>
                           <span>{pct}%</span>
                         </div>
                       </div>
@@ -184,8 +186,8 @@ export function BudgetSection({ budgets, spending }: BudgetSectionProps) {
                       return (
                         <tr key={b.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-all duration-200 animate-in fade-in">
                           <td className="py-3 font-medium text-slate-900">{b.category}</td>
-                          <td className="py-3 text-slate-600">{formatCurrency(Number(b.monthly_limit))}</td>
-                          <td className="py-3 text-slate-600">{formatCurrency(used)}</td>
+                          <td className="py-3 text-slate-600">{formatCurrency(Number(b.monthly_limit), currency)}</td>
+                          <td className="py-3 text-slate-600">{formatCurrency(used, currency)}</td>
                           <td className="py-3">
                             <div className="w-32">
                               <div className="h-2 overflow-hidden rounded-full bg-slate-200/80">

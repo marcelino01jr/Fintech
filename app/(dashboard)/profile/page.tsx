@@ -3,6 +3,8 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, users } from "@/lib/db";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { CurrencySelector } from "@/components/profile/currency-selector";
+import { type CurrencyCode, isValidCurrency } from "@/lib/currency";
 
 export default async function ProfilePage({
   searchParams,
@@ -44,6 +46,12 @@ export default async function ProfilePage({
             </span>
           </div>
         </div>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">Mata Uang</h2>
+        <p className="mt-1 text-sm text-slate-500">Pilih mata uang default untuk pencatatan keuangan Anda</p>
+        <CurrencySelector currentCurrency={(isValidCurrency(user.currency) ? user.currency : "IDR") as CurrencyCode} />
       </div>
 
       <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">

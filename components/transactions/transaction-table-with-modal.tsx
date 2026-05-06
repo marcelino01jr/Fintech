@@ -12,6 +12,7 @@ import { ConfirmDelete } from "@/components/ui/confirm-delete";
 
 import { Transaction } from "@/lib/finance";
 import { cn, formatCurrency } from "@/lib/utils";
+import { isValidCurrency, type CurrencyCode } from "@/lib/currency";
 
 function formatDateTime(date: string, createdAt: string) {
   const time = new Date(createdAt).toLocaleTimeString("id-ID", {
@@ -32,10 +33,12 @@ export function TransactionTableWithModal({
   transactions,
   editTransaction,
   pagination,
+  userCurrency = "IDR",
 }: {
   transactions: Transaction[];
   editTransaction?: Transaction;
   pagination: PaginationProps;
+  userCurrency?: CurrencyCode;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -67,6 +70,10 @@ export function TransactionTableWithModal({
 
   const { currentPage, totalPages, total, urls } = pagination;
 
+  function txCurrency(t: Transaction): CurrencyCode {
+    return (t.currency && isValidCurrency(t.currency) ? t.currency : "IDR") as CurrencyCode;
+  }
+
   const modal =
     showForm && mounted
       ? createPortal(
@@ -89,7 +96,7 @@ export function TransactionTableWithModal({
               </div>
               {/* Body — scrollable */}
               <div className="overflow-y-auto p-5">
-                <TransactionForm transaction={editTransaction} hideCard />
+                <TransactionForm transaction={editTransaction} hideCard userCurrency={userCurrency} />
               </div>
             </div>
           </div>,
@@ -133,7 +140,7 @@ export function TransactionTableWithModal({
                           </div>
                         </div>
                         <p className={cn("shrink-0 text-sm font-bold", t.type === "income" ? "text-emerald-600" : "text-red-500")}>
-                          {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount))}
+                          {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount), txCurrency(t))}
                         </p>
                       </div>
                       <div className="mt-2.5 flex justify-end gap-1.5">
@@ -181,7 +188,7 @@ export function TransactionTableWithModal({
                             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{t.category}</span>
                           </td>
                           <td className={cn("py-3 text-right font-bold", t.type === "income" ? "text-emerald-600" : "text-red-500")}>
-                            {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount))}
+                            {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount), txCurrency(t))}
                           </td>
                           <td className="py-3">
                             <div className="flex justify-end gap-1">

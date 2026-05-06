@@ -9,14 +9,19 @@ import { SummaryCard } from "@/components/summary-card";
 import { TransactionTable } from "@/components/transactions/transaction-table";
 import { cashflowByDay, dailyCashflow, expensesByCategory, monthRange, summarize } from "@/lib/finance";
 import { auth } from "@/lib/auth";
-import { db, transactions } from "@/lib/db";
+import { db, transactions, users } from "@/lib/db";
 import { currentMonth, normalizeDate } from "@/lib/utils";
 import { CircleDollarSign, Plus } from "lucide-react";
+import { type CurrencyCode, isValidCurrency } from "@/lib/currency";
 import type { Transaction } from "@/lib/finance";
 
 export default async function DashboardPage({ searchParams }: { searchParams: { month?: string } }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
+  // Fetch user's preferred currency
+  const [user] = await db.select({ currency: users.currency }).from(users).where(eq(users.id, session.user.id)).limit(1);
+  const userCurrency: CurrencyCode = (user?.currency && isValidCurrency(user.currency)) ? user.currency as CurrencyCode : "IDR";
 
   const month = searchParams.month ?? currentMonth();
   const { from, to } = monthRange(month);
@@ -41,6 +46,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     category: r.category,
     type: r.type as "income" | "expense",
     amount: Number(r.amount),
+    currency: r.currency ?? "IDR",
     created_at: r.createdAt.toISOString(),
   }));
 
@@ -87,17 +93,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        <SummaryCard label="Total Pemasukan" value={summary.income} tone="income" />
-        <SummaryCard label="Total Pengeluaran" value={summary.expense} tone="expense" />
-        <SummaryCard label="Saldo" value={summary.balance} tone="balance" />
+        <SummaryCard label="Total Pemasukan" value={summary.income} tone="income" currency={userCurrency} />
+        <SummaryCard label="Total Pengeluaran" value={summary.expense} tone="expense" currency={userCurrency} />
+        <SummaryCard label="Saldo" value={summary.balance} tone="balance" currency={userCurrency} />
       </div>
 
       {typedTransactions.length ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <CashflowChart data={cashflowByDay(typedTransactions)} />
-            <CategoryPieChart data={expensesByCategory(typedTransactions)} />
-            <DailyCashflowChart data={dailyCashflow(typedTransactions)} />
+            <CashflowChart data={cashflowByDay(typedTransactions)} currency={userCurrency} />
+            <CategoryPieChart data={expensesByCategory(typedTransactions)} currency={userCurrency} />
+            <DailyCashflowChart data={dailyCashflow(typedTransactions)} currency={userCurrency} />
           </div>
           <TransactionTable transactions={recent} showTitle />
         </>

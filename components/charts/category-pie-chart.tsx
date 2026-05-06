@@ -3,21 +3,22 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import type { CurrencyCode } from "@/lib/currency";
 
 const COLORS = ["#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"];
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload, currency }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
       <p className="font-semibold text-slate-700">{d.name}</p>
-      <p className="text-slate-500">{formatCurrency(d.value)}</p>
+      <p className="text-slate-500">{formatCurrency(d.value, currency)}</p>
     </div>
   );
 }
 
-export function CategoryPieChart({ data }: { data: Array<{ name: string; value: number }> }) {
+export function CategoryPieChart({ data, currency = "IDR" }: { data: Array<{ name: string; value: number }>; currency?: CurrencyCode }) {
   return (
     <Card>
       <CardHeader>
@@ -34,7 +35,7 @@ export function CategoryPieChart({ data }: { data: Array<{ name: string; value: 
                       <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip currency={currency} />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

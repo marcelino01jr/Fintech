@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/ui/select";
 import type { DropdownOption } from "@/components/ui/select";
 import { Budget, categories } from "@/lib/finance";
+import { getCurrencySymbol, type CurrencyCode } from "@/lib/currency";
 
 const budgetCategories = categories.filter((c) => !["Gaji", "Freelance"].includes(c));
 
@@ -39,9 +40,10 @@ const categoryOptions: DropdownOption[] = budgetCategories.map((c) => ({
 interface BudgetFormProps {
   editBudget?: Budget;
   onCancel?: () => void;
+  currency?: CurrencyCode;
 }
 
-export function BudgetForm({ editBudget, onCancel }: BudgetFormProps) {
+export function BudgetForm({ editBudget, onCancel, currency = "IDR" }: BudgetFormProps) {
   const initialCategory = useMemo(() => {
     if (!editBudget) return "Makanan & Minuman";
     return budgetCategories.includes(editBudget.category) ? editBudget.category : "Lainnya";
@@ -79,7 +81,7 @@ export function BudgetForm({ editBudget, onCancel }: BudgetFormProps) {
           )}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="monthly_limit">Batas Bulanan (Rp)</Label>
+          <Label htmlFor="monthly_limit">Batas Bulanan ({getCurrencySymbol(currency)})</Label>
           <Input
             id="monthly_limit"
             name="monthly_limit"

@@ -5,8 +5,9 @@ import { BudgetSection } from "@/components/budgets/budget-section";
 import { SummaryCard } from "@/components/summary-card";
 import { monthRange } from "@/lib/finance";
 import { auth } from "@/lib/auth";
-import { db, transactions, budgets as budgetsTable } from "@/lib/db";
+import { db, transactions, budgets as budgetsTable, users } from "@/lib/db";
 import { currentMonth, normalizeDate } from "@/lib/utils";
+import { type CurrencyCode, isValidCurrency } from "@/lib/currency";
 import type { Budget, Transaction } from "@/lib/finance";
 
 export default async function BudgetsPage({
@@ -16,6 +17,9 @@ export default async function BudgetsPage({
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
+  const [user] = await db.select({ currency: users.currency }).from(users).where(eq(users.id, session.user.id)).limit(1);
+  const userCurrency: CurrencyCode = (user?.currency && isValidCurrency(user.currency)) ? user.currency as CurrencyCode : "IDR";
 
   const month = searchParams.month ?? currentMonth();
   const { from, to } = monthRange(month);
@@ -87,12 +91,12 @@ export default async function BudgetsPage({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-        <SummaryCard label="Jumlah Anggaran" value={budgetList.length} tone="balance" />
-        <SummaryCard label="Total Batas" value={totalLimit} tone="income" />
-        <SummaryCard label="Total Terpakai" value={totalSpent} tone="expense" />
+        <SummaryCard label="Jumlah Anggaran" value={budgetList.length} tone="balance" currency={userCurrency} />
+        <SummaryCard label="Total Batas" value={totalLimit} tone="income" currency={userCurrency} />
+        <SummaryCard label="Total Terpakai" value={totalSpent} tone="expense" currency={userCurrency} />
       </div>
 
-      <BudgetSection budgets={sortedBudgets} spending={spending} />
+      <BudgetSection budgets={sortedBudgets} spending={spending} currency={userCurrency} />
     </div>
   );
 }

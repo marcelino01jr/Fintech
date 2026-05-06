@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   sessionVersion: text("session_version").notNull().default("1"),
+  currency: text("currency").notNull().default("IDR"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -64,6 +65,7 @@ export const transactions = pgTable(
     category: text("category").notNull(),
     type: transactionTypeEnum("type").notNull(),
     amount: numeric("amount").notNull(),
+    currency: text("currency").notNull().default("IDR"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({

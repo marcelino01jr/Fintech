@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { monthRange } from "@/lib/finance";
 import { auth } from "@/lib/auth";
-import { db, transactions } from "@/lib/db";
+import { db, transactions, users } from "@/lib/db";
 import { currentMonth, normalizeDate } from "@/lib/utils";
+import { type CurrencyCode, isValidCurrency } from "@/lib/currency";
 import type { Transaction } from "@/lib/finance";
 
 const PAGE_SIZE = 5;
@@ -21,6 +22,9 @@ export default async function TransactionsPage({
 }>) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
+  const [user] = await db.select({ currency: users.currency }).from(users).where(eq(users.id, session.user.id)).limit(1);
+  const userCurrency: CurrencyCode = (user?.currency && isValidCurrency(user.currency)) ? user.currency as CurrencyCode : "IDR";
 
   const month = searchParams.month ?? currentMonth();
   const category = searchParams.category ?? "all";
@@ -69,6 +73,7 @@ export default async function TransactionsPage({
     category: r.category,
     type: r.type,
     amount: Number(r.amount),
+    currency: r.currency ?? "IDR",
     created_at: r.createdAt.toISOString(),
   });
 
@@ -123,6 +128,7 @@ export default async function TransactionsPage({
         transactions={typedTransactions}
         editTransaction={editTransaction}
         pagination={{ currentPage, totalPages, total, urls: paginationUrls }}
+        userCurrency={userCurrency}
       />
     </div>
   );

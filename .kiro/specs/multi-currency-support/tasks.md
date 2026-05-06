@@ -1,0 +1,28 @@
+# Implementation Tasks
+
+- [x] 1. Database schema and migration
+  - [x] 1.1 Add `currency` column to users table in `lib/db/schema.ts` (TEXT, NOT NULL, default "IDR")
+  - [x] 1.2 Add `currency` column to transactions table in `lib/db/schema.ts` (TEXT, NOT NULL, default "IDR")
+  - [x] 1.3 Create migration file `lib/db/migrations/0002_add_currency.sql`
+- [x] 2. Currency configuration module
+  - [x] 2.1 Create `lib/currency.ts` with SUPPORTED_CURRENCIES config, CurrencyCode type, and helper functions
+- [x] 3. Update formatCurrency utility
+  - [x] 3.1 Update `formatCurrency` in `lib/utils.ts` to accept optional currency parameter, import from `lib/currency.ts`
+- [x] 4. Exchange rate service
+  - [x] 4.1 Create `lib/exchange-rate.ts` with in-memory cached exchange rate fetching and conversion functions
+- [x] 5. Server actions for currency
+  - [x] 5.1 Add `updateCurrency` server action in `app/actions.ts`
+  - [x] 5.2 Update `saveTransaction` action to accept and store `currency` field
+- [x] 6. Profile page currency selector
+  - [x] 6.1 Create currency selector component in `components/profile/currency-selector.tsx`
+  - [x] 6.2 Update Profile page to display currency setting section and pass user's current currency
+- [x] 7. Transaction form currency support
+  - [x] 7.1 Update `TransactionForm` to include currency selector, default to user's preferred currency
+  - [x] 7.2 Update amount label to show dynamic currency symbol
+- [x] 8. Dashboard and display components
+  - [x] 8.1 Update Dashboard page to fetch user's preferred currency and pass to components
+  - [x] 8.2 Update `SummaryCard` to accept and use currency prop
+  - [x] 8.3 Update chart components to format values with correct currency
+  - [x] 8.4 Update transaction table to display transaction's own currency
+- [x] 9. Budget components update
+  - [x] 9.1 Update budget page and form to use user's preferred currency for display and input

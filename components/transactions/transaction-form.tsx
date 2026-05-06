@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/ui/select";
 import type { DropdownOption } from "@/components/ui/select";
 import { categories, Transaction } from "@/lib/finance";
+import { CURRENCY_CODES, SUPPORTED_CURRENCIES, getCurrencySymbol, type CurrencyCode } from "@/lib/currency";
 
 // ─── Category icons & colors ─────────────────────────────────────────────────
 
@@ -55,14 +56,22 @@ const typeOptions: DropdownOption[] = [
   },
 ];
 
+const currencyOptions: DropdownOption[] = CURRENCY_CODES.map((code) => ({
+  value: code,
+  label: `${code} — ${SUPPORTED_CURRENCIES[code].name}`,
+  description: SUPPORTED_CURRENCIES[code].symbol,
+}));
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function TransactionForm({
   transaction,
   hideCard,
+  userCurrency = "IDR",
 }: {
   transaction?: Transaction;
   hideCard?: boolean;
+  userCurrency?: CurrencyCode;
 }) {
   const initialCategory = useMemo(() => {
     if (!transaction?.category) return "Makanan & Minuman";
@@ -71,6 +80,9 @@ export function TransactionForm({
 
   const [category, setCategory] = useState(initialCategory);
   const [type, setType] = useState<string>(transaction?.type ?? "expense");
+  const [currency, setCurrency] = useState<string>(
+    (transaction as any)?.currency ?? userCurrency
+  );
   const [customCategory, setCustomCategory] = useState(
     transaction?.category && !categories.includes(transaction.category) ? transaction.category : ""
   );
@@ -81,6 +93,7 @@ export function TransactionForm({
       {/* Hidden fields for CustomSelect values */}
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="category" value={category} />
+      <input type="hidden" name="currency" value={currency} />
       {category === "Lainnya" && (
         <input type="hidden" name="custom_category" value={customCategory} />
       )}
@@ -128,7 +141,7 @@ export function TransactionForm({
           )}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="amount">Jumlah (Rp)</Label>
+          <Label htmlFor="amount">Jumlah ({getCurrencySymbol(currency as CurrencyCode)})</Label>
           <Input
             id="amount"
             name="amount"
@@ -140,6 +153,15 @@ export function TransactionForm({
             required
           />
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Mata Uang</Label>
+        <CustomSelect
+          options={currencyOptions}
+          value={currency}
+          onChange={setCurrency}
+        />
       </div>
 
       <div className="space-y-1.5">

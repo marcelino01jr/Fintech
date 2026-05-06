@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Transaction } from "@/lib/finance";
 import { cn, formatCurrency } from "@/lib/utils";
+import type { CurrencyCode } from "@/lib/currency";
+import { isValidCurrency } from "@/lib/currency";
 
 export function TransactionTable({
   transactions,
@@ -51,7 +53,7 @@ export function TransactionTable({
                       </div>
                     </div>
                     <p className={cn("shrink-0 text-sm font-bold", t.type === "income" ? "text-emerald-600" : "text-red-500")}>
-                      {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount))}
+                      {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount), (t.currency && isValidCurrency(t.currency) ? t.currency : "IDR") as CurrencyCode)}
                     </p>
                   </div>
                   <div className="mt-2.5 flex justify-end gap-1.5">
@@ -97,7 +99,7 @@ export function TransactionTable({
                         <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{t.category}</span>
                       </td>
                       <td className={cn("py-3 text-right font-bold", t.type === "income" ? "text-emerald-600" : "text-red-500")}>
-                        {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount))}
+                        {t.type === "income" ? "+" : "-"}{formatCurrency(Number(t.amount), (t.currency && isValidCurrency(t.currency) ? t.currency : "IDR") as CurrencyCode)}
                       </td>
                       <td className="py-3">
                         <div className="flex justify-end gap-1">

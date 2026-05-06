@@ -1,15 +1,20 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { type CurrencyCode, SUPPORTED_CURRENCIES, isValidCurrency } from "@/lib/currency";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("id-ID", {
+export function formatCurrency(value: number, currency: CurrencyCode = "IDR") {
+  const config = isValidCurrency(currency)
+    ? SUPPORTED_CURRENCIES[currency]
+    : SUPPORTED_CURRENCIES["IDR"];
+
+  return new Intl.NumberFormat(config.locale, {
     style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0
+    currency: currency,
+    maximumFractionDigits: config.fractionDigits,
   }).format(value);
 }
 

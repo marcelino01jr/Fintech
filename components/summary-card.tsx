@@ -1,5 +1,6 @@
 import { ArrowDownCircle, ArrowUpCircle, WalletCards } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
+import type { CurrencyCode } from "@/lib/currency";
 
 const config = {
   income: { icon: ArrowUpCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -11,10 +12,12 @@ export function SummaryCard({
   label,
   value,
   tone,
+  currency = "IDR",
 }: {
   label: string;
   value: number;
   tone: "income" | "expense" | "balance";
+  currency?: CurrencyCode;
 }) {
   const { icon: Icon, color, bg } = config[tone];
 
@@ -27,7 +30,7 @@ export function SummaryCard({
         </span>
       </div>
       <p className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:mt-3 sm:text-2xl">
-        {formatCurrency(value)}
+        {formatCurrency(value, currency)}
       </p>
     </div>
   );
