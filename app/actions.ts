@@ -169,6 +169,17 @@ export async function updatePassword(formData: FormData) {
   redirect("/profile?success=" + encodeURIComponent("Kata sandi berhasil diperbarui!"));
 }
 
+// ─── OTP Verification (deprecated - now using magic link) ─────────────────────
+
+export async function verifyOtpAction(email: string, token: string) {
+  // OTP flow has been replaced with magic link
+  // This function is kept for compatibility but always returns error
+  return {
+    success: false,
+    message: "OTP verification is no longer supported. Please use password reset link.",
+  };
+}
+
 // ─── Transactions ─────────────────────────────────────────────────────────────
 
 export async function saveTransaction(formData: FormData) {

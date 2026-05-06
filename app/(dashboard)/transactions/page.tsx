@@ -3,6 +3,9 @@ import { and, desc, eq, gte, lte, count } from "drizzle-orm";
 import { ToastOnLoad } from "@/components/toast-on-load";
 import { TransactionTableWithModal } from "@/components/transactions/transaction-table-with-modal";
 import { CategoryFilter } from "@/components/transactions/category-filter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { monthRange } from "@/lib/finance";
 import { auth } from "@/lib/auth";
 import { db, transactions } from "@/lib/db";
@@ -13,9 +16,9 @@ const PAGE_SIZE = 5;
 
 export default async function TransactionsPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams: { month?: string; category?: string; edit?: string; saved?: string; page?: string };
-}) {
+}>) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
@@ -28,7 +31,7 @@ export default async function TransactionsPage({
     eq(transactions.userId, session.user.id),
     gte(transactions.date, from),
     lte(transactions.date, to),
-    ...(category !== "all" ? [eq(transactions.category, category)] : [])
+    ...(category === "all" ? [] : [eq(transactions.category, category)])
   );
 
   const [{ total }] = await db
@@ -64,7 +67,7 @@ export default async function TransactionsPage({
     date: normalizeDate(r.date),
     description: r.description,
     category: r.category,
-    type: r.type as "income" | "expense",
+    type: r.type,
     amount: Number(r.amount),
     created_at: r.createdAt.toISOString(),
   });
@@ -92,33 +95,29 @@ export default async function TransactionsPage({
         <p className="mt-1 text-sm text-slate-500">Kelola semua pemasukan dan pengeluaran Anda.</p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          {/* Month picker — native form submit */}
-          <form className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1 space-y-1.5">
-              <label className="text-xs font-medium text-slate-500">Periode</label>
-              <input
-                type="month"
-                name="month"
-                defaultValue={month}
-                className="flex h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 shadow-sm transition-colors focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              />
-            </div>
-            <button
-              type="submit"
-              className="h-11 w-full rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 sm:w-auto sm:shrink-0"
-            >
-              Terapkan
-            </button>
-          </form>
-          {/* Category filter — client-side instant navigation */}
-          <div className="flex-1 space-y-1.5">
-            <label className="text-xs font-medium text-slate-500">Kategori</label>
-            <CategoryFilter month={month} category={category} />
+      <Card>
+        <CardHeader className="gap-2 bg-slate-50/80 px-5 py-4">
+          <div className="space-y-1">
+            <CardTitle>Filter Transaksi</CardTitle>
+            <CardDescription>Pilih periode dan kategori untuk menampilkan transaksi yang sesuai.</CardDescription>
           </div>
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 px-5 pb-5 pt-3 sm:grid-cols-[minmax(0,260px)_minmax(0,1fr)_auto] sm:items-end">
+          <div className="space-y-1.5">
+            <label htmlFor="month" className="text-xs font-medium text-slate-500">Periode</label>
+            <Input id="month" type="month" name="month" defaultValue={month} />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="category" className="text-xs font-medium text-slate-500">Kategori</label>
+            <CategoryFilter id="category" month={month} category={category} />
+          </div>
+          <div className="flex items-end justify-end">
+            <Button type="submit" className="w-full sm:w-auto">
+              Terapkan
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <TransactionTableWithModal
         transactions={typedTransactions}

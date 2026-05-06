@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { categories } from "@/lib/finance";
@@ -10,11 +10,13 @@ const allOption = { value: "all", label: "Semua Kategori" };
 const options = [allOption, ...categories.map((c) => ({ value: c, label: c }))];
 
 export function CategoryFilter({
+  id,
   month,
   category,
 }: {
-  month: string;
-  category: string;
+  readonly id?: string;
+  readonly month: string;
+  readonly category: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -51,6 +53,7 @@ export function CategoryFilter({
   return (
     <div ref={ref} className="relative flex-1">
       <button
+        id={id}
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
