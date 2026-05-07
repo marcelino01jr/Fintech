@@ -23,9 +23,10 @@ interface BudgetSectionProps {
   budgets: Budget[];
   spending: Record<string, number>;
   currency?: CurrencyCode;
+  savedKey?: string;
 }
 
-export function BudgetSection({ budgets, spending, currency = "IDR" }: BudgetSectionProps) {
+export function BudgetSection({ budgets, spending, currency = "IDR", savedKey }: BudgetSectionProps) {
   const [editBudget, setEditBudget] = useState<Budget | undefined>(undefined);
   const [showModal, setShowModal] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -41,6 +42,14 @@ export function BudgetSection({ budgets, spending, currency = "IDR" }: BudgetSec
     setShowModal(false);
     setEditBudget(undefined);
   }, [budgetIds]);
+
+  // Auto-close modal after successful save
+  useEffect(() => {
+    if (savedKey) {
+      setShowModal(false);
+      setEditBudget(undefined);
+    }
+  }, [savedKey]);
 
   useEffect(() => {
     document.body.style.overflow = showModal ? "hidden" : "";

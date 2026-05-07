@@ -34,11 +34,13 @@ export function TransactionTableWithModal({
   editTransaction,
   pagination,
   userCurrency = "IDR",
+  savedKey,
 }: {
   transactions: Transaction[];
   editTransaction?: Transaction;
   pagination: PaginationProps;
   userCurrency?: CurrencyCode;
+  savedKey?: string;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -50,6 +52,11 @@ export function TransactionTableWithModal({
   // Auto-close modal when data changes
   const txIds = transactions.map((t) => t.id).join(",");
   useEffect(() => { setShowForm(false); }, [txIds]);
+
+  // Auto-close modal after successful save
+  useEffect(() => {
+    if (savedKey) setShowForm(false);
+  }, [savedKey]);
 
   // Auto-open modal when editing
   useEffect(() => {

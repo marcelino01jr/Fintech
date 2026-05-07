@@ -96,7 +96,7 @@ export default async function BudgetsPage({
         <SummaryCard label="Total Terpakai" value={totalSpent} tone="expense" currency={userCurrency} />
       </div>
 
-      <BudgetSection budgets={sortedBudgets} spending={spending} currency={userCurrency} />
+      <BudgetSection budgets={sortedBudgets} spending={spending} currency={userCurrency} savedKey={searchParams.saved} />
     </div>
   );
 }

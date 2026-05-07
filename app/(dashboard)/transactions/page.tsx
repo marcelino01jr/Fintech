@@ -129,6 +129,7 @@ export default async function TransactionsPage({
         editTransaction={editTransaction}
         pagination={{ currentPage, totalPages, total, urls: paginationUrls }}
         userCurrency={userCurrency}
+        savedKey={searchParams.saved}
       />
     </div>
   );
