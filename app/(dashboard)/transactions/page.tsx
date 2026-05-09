@@ -109,18 +109,18 @@ export default async function TransactionsPage({
         </Button>
       </div>
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader className="gap-2 bg-slate-50/80 px-5 py-4">
           <div className="space-y-1">
             <CardTitle>Filter Transaksi</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="grid gap-3 px-5 pb-5 pt-3 sm:grid-cols-[minmax(0,260px)_minmax(0,1fr)_auto] sm:items-end">
-          <div className="space-y-1.5">
+          <div className="min-w-0 space-y-1.5">
             <label htmlFor="month" className="text-xs font-medium text-slate-500">Periode</label>
-            <Input id="month" type="month" name="month" defaultValue={month} />
+            <Input id="month" type="month" name="month" defaultValue={month} className="w-full" />
           </div>
-          <div className="space-y-1.5">
+          <div className="min-w-0 space-y-1.5">
             <label htmlFor="category" className="text-xs font-medium text-slate-500">Kategori</label>
             <CategoryFilter id="category" month={month} category={category} />
           </div>

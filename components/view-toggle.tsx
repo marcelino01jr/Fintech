@@ -15,14 +15,14 @@ export function ViewToggle() {
   }
 
   return (
-    <div className="flex items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+    <div className="inline-flex items-center self-start rounded-xl border border-slate-200 bg-slate-100 p-1 gap-1">
       <button
         onClick={() => setView("monthly")}
         className={cn(
-          "px-4 py-1.5 text-sm font-medium rounded-xl transition-colors",
+          "px-3 py-1 text-sm font-semibold rounded-lg transition-all duration-200",
           view === "monthly"
-            ? "bg-blue-50 text-blue-700"
-            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+            ? "bg-white text-slate-900 shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
         )}
       >
         Bulanan
@@ -30,10 +30,10 @@ export function ViewToggle() {
       <button
         onClick={() => setView("yearly")}
         className={cn(
-          "px-4 py-1.5 text-sm font-medium rounded-xl transition-colors",
+          "px-3 py-1 text-sm font-semibold rounded-lg transition-all duration-200",
           view === "yearly"
-            ? "bg-blue-50 text-blue-700"
-            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+            ? "bg-white text-slate-900 shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
         )}
       >
         Tahunan
