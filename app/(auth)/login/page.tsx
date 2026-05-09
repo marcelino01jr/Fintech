@@ -3,6 +3,7 @@ import { Wallet, Mail, Lock, Check } from "lucide-react";
 import { signIn } from "@/app/actions";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { PasswordInput } from "@/components/forms/password-input";
+import { NoSpaceInput } from "@/components/forms/nospace-input";
 
 export default function LoginPage({ searchParams }: { searchParams: { message?: string; success?: string } }) {
   return (
@@ -13,7 +14,6 @@ export default function LoginPage({ searchParams }: { searchParams: { message?: 
           <Wallet className="h-7 w-7 text-white" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900">Selamat datang kembali</h1>
-        <p className="mt-1.5 text-sm text-slate-500">Masuk ke ruang kerja keuangan Anda</p>
       </div>
 
       {/* Form */}
@@ -24,13 +24,13 @@ export default function LoginPage({ searchParams }: { searchParams: { message?: 
           </label>
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
+            <NoSpaceInput
               id="email"
               name="email"
               type="email"
               required
               placeholder="nama@email.com"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="pl-10"
             />
           </div>
         </div>

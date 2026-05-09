@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { PieChart, ReceiptText, Target, Wallet, User } from "lucide-react";
+import { Suspense } from "react";
+import { PieChart, ReceiptText, Target, Wallet } from "lucide-react";
 import { LogoutButton } from "./logout-button";
+import { NotificationBell } from "./notification-bell";
 
 const navItems = [
   { href: "/dashboard", label: "Beranda", icon: PieChart },
   { href: "/transactions", label: "Transaksi", icon: ReceiptText },
   { href: "/budgets", label: "Anggaran", icon: Target },
-  { href: "/profile", label: "Profil", icon: User },
 ];
 
 export function AppShell({ children, email, username }: { children: React.ReactNode; email?: string; username?: string }) {
@@ -29,7 +30,6 @@ export function AppShell({ children, email, username }: { children: React.ReactN
             </span>
             <span>
               <span className="block text-lg font-bold text-slate-900">FinTrack</span>
-              <span className="block text-xs font-medium text-slate-400">Keuangan pribadi</span>
             </span>
           </Link>
 
@@ -79,7 +79,10 @@ export function AppShell({ children, email, username }: { children: React.ReactN
             </nav>
 
             {/* Right side: email + logout */}
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-3">
+              <Suspense fallback={<div className="h-[38px] w-[38px]" />}>
+                <NotificationBell />
+              </Suspense>
               <LogoutButton email={email} username={username} />
             </div>
           </div>

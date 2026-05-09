@@ -47,6 +47,13 @@ export function monthRange(month: string) {
   };
 }
 
+export function yearRange(year: string) {
+  return {
+    from: `${year}-01-01`,
+    to: `${year}-12-31`
+  };
+}
+
 export function summarize(transactions: Transaction[]) {
   const income = transactions
     .filter((transaction) => transaction.type === "income")
@@ -119,4 +126,33 @@ export function dailyCashflow(transactions: Transaction[]) {
   });
 
   return Array.from(days.values()).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export function monthlyCashflowByYear(transactions: Transaction[]) {
+  const months = new Map<string, { month: string; income: number; expense: number }>();
+  
+  for (let i = 1; i <= 12; i++) {
+    const mm = String(i).padStart(2, "0");
+    months.set(mm, { month: mm, income: 0, expense: 0 });
+  }
+
+  transactions.forEach((transaction) => {
+    const mm = transaction.date.slice(5, 7);
+    const item = months.get(mm);
+    if (item) {
+      item[transaction.type] += Number(transaction.amount);
+    }
+  });
+
+  // Map "01" to "Jan", "02" to "Feb", etc. for display
+  const monthLabels: Record<string, string> = {
+    "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr",
+    "05": "Mei", "06": "Jun", "07": "Jul", "08": "Agt",
+    "09": "Sep", "10": "Okt", "11": "Nov", "12": "Des"
+  };
+
+  return Array.from(months.values()).map(m => ({
+    ...m,
+    label: monthLabels[m.month] || m.month
+  }));
 }

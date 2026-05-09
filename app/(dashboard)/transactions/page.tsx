@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Download } from "lucide-react";
 import { and, desc, eq, gte, lte, count } from "drizzle-orm";
 import { ToastOnLoad } from "@/components/toast-on-load";
 import { TransactionTableWithModal } from "@/components/transactions/transaction-table-with-modal";
@@ -57,11 +58,11 @@ export default async function TransactionsPage({
       .offset(offset),
     searchParams.edit
       ? db
-          .select()
-          .from(transactions)
-          .where(and(eq(transactions.id, searchParams.edit), eq(transactions.userId, session.user.id)))
-          .limit(1)
-          .then((r) => r[0] ?? null)
+        .select()
+        .from(transactions)
+        .where(and(eq(transactions.id, searchParams.edit), eq(transactions.userId, session.user.id)))
+        .limit(1)
+        .then((r) => r[0] ?? null)
       : Promise.resolve(null),
   ]);
 
@@ -95,16 +96,23 @@ export default async function TransactionsPage({
         <ToastOnLoad title="Transaksi tersimpan" description="Ringkasan bulanan Anda diperbarui." />
       )}
 
-      <div>
-        <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Transaksi</h1>
-        <p className="mt-1 text-sm text-slate-500">Kelola semua pemasukan dan pengeluaran Anda.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Transaksi</h1>
+          <p className="mt-1 text-sm text-slate-500">Kelola semua pemasukan dan pengeluaran Anda.</p>
+        </div>
+        <Button asChild variant="outline" className="gap-2 shadow-sm">
+          <a href={`/api/export/transactions?month=${month}${category !== "all" ? `&category=${category}` : ""}`}>
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </a>
+        </Button>
       </div>
 
       <Card>
         <CardHeader className="gap-2 bg-slate-50/80 px-5 py-4">
           <div className="space-y-1">
             <CardTitle>Filter Transaksi</CardTitle>
-            <CardDescription>Pilih periode dan kategori untuk menampilkan transaksi yang sesuai.</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="grid gap-3 px-5 pb-5 pt-3 sm:grid-cols-[minmax(0,260px)_minmax(0,1fr)_auto] sm:items-end">

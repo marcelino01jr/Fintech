@@ -7,7 +7,6 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "FinTrack",
-  description: "Pelacak keuangan pribadi",
   icons: {
     icon: "/favicon.png",
   },

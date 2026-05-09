@@ -81,9 +81,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               {greeting}, {displayName}
             </h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-              Ringkasan bulanan, cashflow, dan pola pengeluaran Anda.
-            </p>
+
           </div>
         </div>
         <MonthFilter month={month} />

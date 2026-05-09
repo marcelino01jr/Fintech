@@ -4,10 +4,13 @@ import { and, asc, eq, gte, lte } from "drizzle-orm";
 import { CashflowChart } from "@/components/charts/cashflow-chart";
 import { CategoryPieChart } from "@/components/charts/category-pie-chart";
 import { DailyCashflowChart } from "@/components/charts/daily-expense-chart";
+import { YearlyCashflowChart } from "@/components/charts/yearly-cashflow-chart";
 import { MonthFilter } from "@/components/month-filter";
+import { YearFilter } from "@/components/year-filter";
+import { ViewToggle } from "@/components/view-toggle";
 import { SummaryCard } from "@/components/summary-card";
 import { TransactionTable } from "@/components/transactions/transaction-table";
-import { cashflowByDay, dailyCashflow, expensesByCategory, monthRange, summarize } from "@/lib/finance";
+import { cashflowByDay, dailyCashflow, expensesByCategory, monthRange, yearRange, summarize, monthlyCashflowByYear } from "@/lib/finance";
 import { auth } from "@/lib/auth";
 import { db, transactions, users } from "@/lib/db";
 import { currentMonth, normalizeDate } from "@/lib/utils";
@@ -15,7 +18,7 @@ import { CircleDollarSign, Plus } from "lucide-react";
 import { type CurrencyCode, isValidCurrency } from "@/lib/currency";
 import type { Transaction } from "@/lib/finance";
 
-export default async function DashboardPage({ searchParams }: { searchParams: { month?: string } }) {
+export default async function DashboardPage({ searchParams }: { searchParams: { month?: string; view?: string; year?: string } }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
@@ -23,8 +26,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const [user] = await db.select({ currency: users.currency }).from(users).where(eq(users.id, session.user.id)).limit(1);
   const userCurrency: CurrencyCode = (user?.currency && isValidCurrency(user.currency)) ? user.currency as CurrencyCode : "IDR";
 
+  const view = searchParams.view === "yearly" ? "yearly" : "monthly";
   const month = searchParams.month ?? currentMonth();
-  const { from, to } = monthRange(month);
+  const year = searchParams.year ?? new Date().getFullYear().toString();
+  
+  const { from, to } = view === "yearly" ? yearRange(year) : monthRange(month);
 
   const rows = await db
     .select()
@@ -74,6 +80,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     month: "long",
     year: "numeric",
   });
+  
+  const emptyStateLabel = view === "yearly" ? `Tahun ${year}` : monthLabel;
 
   return (
     <div className="space-y-6">
@@ -84,12 +92,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               {greeting}, {displayName}
             </h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-              Ringkasan bulanan, cashflow, dan pola pengeluaran Anda.
-            </p>
+
           </div>
+          <Suspense fallback={<div className="h-[38px] w-[120px] rounded-2xl bg-slate-100 animate-pulse" />}>
+            <ViewToggle />
+          </Suspense>
         </div>
-        <MonthFilter month={month} />
+        <Suspense fallback={<div className="mt-5 h-[44px] w-[200px] rounded-2xl bg-slate-100 animate-pulse" />}>
+          {view === "yearly" ? <YearFilter year={year} /> : <MonthFilter month={month} />}
+        </Suspense>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -100,11 +111,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
       {typedTransactions.length ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <CashflowChart data={cashflowByDay(typedTransactions)} currency={userCurrency} />
-            <CategoryPieChart data={expensesByCategory(typedTransactions)} currency={userCurrency} />
-            <DailyCashflowChart data={dailyCashflow(typedTransactions)} currency={userCurrency} />
-          </div>
+          {view === "yearly" ? (
+            <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+              <YearlyCashflowChart data={monthlyCashflowByYear(typedTransactions)} currency={userCurrency} />
+              <CategoryPieChart data={expensesByCategory(typedTransactions)} currency={userCurrency} />
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <CashflowChart data={cashflowByDay(typedTransactions)} currency={userCurrency} />
+              <CategoryPieChart data={expensesByCategory(typedTransactions)} currency={userCurrency} />
+              <DailyCashflowChart data={dailyCashflow(typedTransactions)} currency={userCurrency} />
+            </div>
+          )}
           <TransactionTable transactions={recent} showTitle />
         </>
       ) : (
@@ -114,15 +132,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           </div>
           <div>
             <h3 className="text-base font-semibold text-slate-900">
-              Belum ada transaksi di {monthLabel}
+              Belum ada transaksi di {emptyStateLabel}
             </h3>
             <p className="mt-1.5 max-w-md text-sm text-slate-500">
-              {isCurrentMonth
+              {view === "monthly" && isCurrentMonth
                 ? "Mulai catat pemasukan dan pengeluaran bulan ini untuk melihat ringkasan, chart, dan insight."
-                : `Tidak ada data untuk ${monthLabel}. Gunakan filter di atas untuk melihat bulan lain.`}
+                : `Tidak ada data untuk ${emptyStateLabel}. Gunakan filter di atas untuk melihat periode lain.`}
             </p>
           </div>
-          {isCurrentMonth && (
+          {view === "monthly" && isCurrentMonth && (
             <Link
               href="/transactions"
               className="mt-2 inline-flex items-center gap-2 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-600"

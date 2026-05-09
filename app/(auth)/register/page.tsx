@@ -3,6 +3,7 @@ import { WalletCards, Mail, Lock, UserPlus, UserCircle } from "lucide-react";
 import { signUp } from "@/app/actions";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { PasswordInput } from "@/components/forms/password-input";
+import { NoSpaceInput } from "@/components/forms/nospace-input";
 
 export default function RegisterPage({ searchParams }: { searchParams: { message?: string } }) {
   return (
@@ -26,14 +27,14 @@ export default function RegisterPage({ searchParams }: { searchParams: { message
           </label>
           <div className="relative">
             <UserCircle className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
+            <NoSpaceInput
               id="username"
               name="username"
               type="text"
               required
               minLength={3}
-              placeholder="johndoe"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              placeholder="SltnAccel"
+              className="pl-10"
             />
           </div>
           <p className="text-xs text-slate-400">Minimal 3 karakter, akan ditampilkan di dashboard</p>
@@ -45,13 +46,13 @@ export default function RegisterPage({ searchParams }: { searchParams: { message
           </label>
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
+            <NoSpaceInput
               id="email"
               name="email"
               type="email"
               required
               placeholder="nama@email.com"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="pl-10"
             />
           </div>
         </div>

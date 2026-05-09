@@ -85,7 +85,6 @@ export default async function BudgetsPage({
       {/* Page header */}
       <div>
         <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Anggaran</h1>
-        <p className="mt-1 text-sm text-slate-500">Tetapkan batas bulanan dan pantau pengeluaran per kategori.</p>
       </div>
 
       {/* Summary */}
