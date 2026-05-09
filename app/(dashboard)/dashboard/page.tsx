@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { and, asc, eq, gte, lte } from "drizzle-orm";
 import { CashflowChart } from "@/components/charts/cashflow-chart";
