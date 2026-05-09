@@ -4,6 +4,7 @@ import { signIn } from "@/app/actions";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { PasswordInput } from "@/components/forms/password-input";
 import { NoSpaceInput } from "@/components/forms/nospace-input";
+import { FormLinkWrapper } from "@/components/forms/form-link-wrapper";
 
 export default function LoginPage({ searchParams }: { searchParams: { message?: string; success?: string } }) {
   return (
@@ -48,12 +49,14 @@ export default function LoginPage({ searchParams }: { searchParams: { message?: 
         </div>
 
         <div className="flex justify-end">
-          <Link
-            href="/forgot-password"
-            className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
-          >
-            Lupa kata sandi?
-          </Link>
+          <FormLinkWrapper>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
+            >
+              Lupa kata sandi?
+            </Link>
+          </FormLinkWrapper>
         </div>
 
         {searchParams.message && (
@@ -72,15 +75,17 @@ export default function LoginPage({ searchParams }: { searchParams: { message?: 
         <SubmitButton className="h-12 w-full rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/30">
           Masuk
         </SubmitButton>
-      </form>
 
-      {/* Footer */}
-      <p className="mt-6 text-center text-sm text-slate-500">
-        Belum punya akun?{" "}
-        <Link href="/register" className="font-semibold text-blue-600 transition-colors hover:text-blue-700">
-          Buat akun
-        </Link>
-      </p>
+        {/* Footer — inside form so useFormStatus works */}
+        <p className="text-center text-sm text-slate-500">
+          Belum punya akun?{" "}
+          <FormLinkWrapper>
+            <Link href="/register" className="font-semibold text-blue-600 transition-colors hover:text-blue-700">
+              Buat akun
+            </Link>
+          </FormLinkWrapper>
+        </p>
+      </form>
     </div>
   );
 }

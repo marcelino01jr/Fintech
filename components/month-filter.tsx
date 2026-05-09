@@ -36,8 +36,10 @@ export function MonthFilter({ month, compact }: MonthFilterProps) {
 
   const isCurrentMonth = month === currentMonth();
 
+  // compact = true  → w-full (fills filter card on transactions page)
+  // compact = false → natural width (matches YearFilter style on dashboard)
   const pill = (
-    <div className="flex w-full items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+    <div className={`flex items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm overflow-hidden ${compact ? "w-full" : "max-w-full"}`}>
       <button
         onClick={() => go(shiftMonth(month, -1))}
         className="flex shrink-0 h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
@@ -45,7 +47,7 @@ export function MonthFilter({ month, compact }: MonthFilterProps) {
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
-      <span className="flex-1 truncate text-center text-sm font-semibold text-slate-800">
+      <span className="flex-1 min-w-[120px] truncate text-center text-sm font-semibold text-slate-800">
         {formatMonthLabel(month)}
       </span>
       <button

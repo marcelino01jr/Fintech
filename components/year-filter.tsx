@@ -34,8 +34,8 @@ export function YearFilter({ year }: YearFilterProps) {
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="flex-1 px-2 sm:px-3 min-w-[100px] text-center text-sm font-bold text-slate-800">
-          Tahun {year}
+        <span className="flex-1 px-2 sm:px-3 min-w-[120px] truncate text-center text-sm font-semibold text-slate-800">
+          {year}
         </span>
         <button
           onClick={() => go(1)}
