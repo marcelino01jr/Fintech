@@ -12,6 +12,29 @@ export function OtpForm({ email, message }: { email: string; message?: string })
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
 
+  const verifyOtp = useCallback(
+    async (token: string) => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const result = await verifyOtpAction(email, token);
+
+        if (!result.success) {
+          setError(result.message);
+          setLoading(false);
+          return;
+        }
+
+        router.push("/reset-password?email=" + encodeURIComponent(email));
+      } catch {
+        setError("Terjadi kesalahan. Silakan coba lagi.");
+        setLoading(false);
+      }
+    },
+    [email, router]
+  );
+
   const handleChange = useCallback(
     (index: number, value: string) => {
       const digit = value.replace(/\D/g, "").slice(-1);
@@ -28,7 +51,7 @@ export function OtpForm({ email, message }: { email: string; message?: string })
         verifyOtp(newOtp.join(""));
       }
     },
-    [otp]
+    [otp, verifyOtp]
   );
 
   const handleKeyDown = useCallback(
@@ -40,7 +63,8 @@ export function OtpForm({ email, message }: { email: string; message?: string })
     [otp]
   );
 
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (!pasted) return;
@@ -58,27 +82,8 @@ export function OtpForm({ email, message }: { email: string; message?: string })
     if (pasted.length === 6) {
       verifyOtp(pasted);
     }
-  }, []);
-
-  async function verifyOtp(token: string) {
-    setLoading(true);
-    setError("");
-
-    try {
-      const result = await verifyOtpAction(email, token);
-
-      if (!result.success) {
-        setError(result.message);
-        setLoading(false);
-        return;
-      }
-
-      router.push("/reset-password?email=" + encodeURIComponent(email));
-    } catch {
-      setError("Terjadi kesalahan. Silakan coba lagi.");
-      setLoading(false);
-    }
-  }
+    }, [verifyOtp]
+  );
 
   const allFilled = otp.every((d) => d !== "");
 

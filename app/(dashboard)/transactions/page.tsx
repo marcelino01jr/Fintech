@@ -110,11 +110,11 @@ export default async function TransactionsPage({
         </Button>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden w-full">
         <CardHeader className="gap-2 bg-slate-50/80 px-5 py-4">
           <CardTitle>Filter Transaksi</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 px-5 pb-5 pt-3">
+        <CardContent className="space-y-4 px-5 pb-5 pt-3 min-w-0">
           {/* Row 1: Periode */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-slate-500">Periode</label>

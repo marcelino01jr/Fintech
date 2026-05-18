@@ -51,13 +51,13 @@ export function CategoryFilter({
   }
 
   return (
-    <div ref={ref} className="relative flex-1">
+    <div ref={ref} className="relative flex-1 min-w-0">
       <button
         id={id}
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-11 w-full items-center justify-between gap-2 rounded-xl border bg-white px-3.5 text-sm shadow-sm transition-all",
+          "flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-xl border bg-white px-3.5 text-sm shadow-sm transition-all",
           open
             ? "border-blue-300 ring-2 ring-blue-500/20"
             : "border-slate-200 hover:border-slate-300"
